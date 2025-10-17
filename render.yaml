@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: employee-knowledge-chatbot
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app/streamlit_app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USER
+        value: neo4j
+      - key: gN018ol2j7RvaiEzVkUemJpzd3J-iqjvmTtbdTTdQCU
+        sync: false
+      - key: CYPHER_PROMPT_PATH
+        value: app/cypher_prompt.txt
+
+# Optional: nightly cron to refresh data (if you host Excel on S3/URL)
+cronJobs:
+  - name: nightly-ingest
+    schedule: "0 21 * * *"    # 21:00 UTC daily
+    command: |
+      python ingest/neo4j_loader_dynamic.py \
+        --excel "https://your-bucket.s3.amazonaws.com/Hackathon_Master_Database.xlsx" \
+        --sheet "Master Data - CL" \
+        --uri "$NEO4J_URI" \
+        --user "$NEO4J_USER" \
+        --password "$gN018ol2j7RvaiEzVkUemJpzd3J-iqjvmTtbdTTdQCU"
+    envVars:
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USER
+        value: neo4j
+      - key: gN018ol2j7RvaiEzVkUemJpzd3J-iqjvmTtbdTTdQCU
+        sync: false
